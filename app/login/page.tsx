@@ -1,26 +1,33 @@
 "use client";
 
 import React, { useState } from 'react';
-import { authUser } from '../providers/auth';
+import { useRouter } from 'next/navigation';
+import { auth } from '../providers/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
-const LoginPage = () => {
+
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await authUser(email, password);
-      // Redirect or show a success message
-    } catch (error: any) {
-      console.error('Login error:', error);
-      // Show an error message
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/'); 
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 
-
   return (
-    < form onSubmit ={handleLogin} >
     <main>
       <div className="hero min-h-screen bg-base-200">
         <div className="hero-content flex-col lg:flex-row-reverse">
@@ -31,11 +38,10 @@ const LoginPage = () => {
             </p>
           </div>
           <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
-            <form className="card-body" //</div>onSubmit={handleLogin}
-            >
+            <form className="card-body" onSubmit={handleLogin}>
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Student Email</span>
+                  <span className="label-text">Student ID</span>
                 </label>
                 <label className="input input-bordered flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70">
@@ -44,7 +50,7 @@ const LoginPage = () => {
                   <input
                     type="email"
                     className="grow"
-                    placeholder="Email"
+                    placeholder="Username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -77,16 +83,13 @@ const LoginPage = () => {
                 </label>
               </div>
               <div className="form-control mt-6">
-                <button className="btn btn-primary" type='submit'>Login</button>
+                <button className="btn btn-primary">Login</button>
               </div>
+              {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
             </form>
           </div>
         </div>
       </div>
     </main>
-    </form>
   );
-
-};
-
-export default LoginPage;
+}
