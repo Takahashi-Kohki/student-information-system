@@ -1,10 +1,26 @@
 "use client";
 
 import React, { useState } from 'react';
+import { authUser } from '../providers/auth';
 
-export default function Home() {
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await authUser(email, password);
+      // Redirect or show a success message
+    } catch (error: any) {
+      console.error('Login error:', error);
+      // Show an error message
+    }
+  };
+
 
   return (
+    < form onSubmit ={handleLogin} >
     <main>
       <div className="hero min-h-screen bg-base-200">
         <div className="hero-content flex-col lg:flex-row-reverse">
@@ -26,11 +42,11 @@ export default function Home() {
                     <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM12.735 14c.618 0 1.093-.561.872-1.139a6.002 6.002 0 0 0-11.215 0c-.22.578.254 1.139.872 1.139h9.47Z" />
                   </svg>
                   <input
-                    //type="email"
-                    //className="grow"
-                   // placeholder="Username"
-                    //value={email}
-                   // onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    className="grow"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </label>
               </div>
@@ -47,11 +63,11 @@ export default function Home() {
                     />
                   </svg>
                   <input
-                    //type="password"
-                   // className="grow"
-                   // placeholder="Password"
-                   // value={password}
-                   // onChange={(e) => setPassword(e.target.value)}
+                    type="password"
+                    className="grow"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </label>
                 <label className="label">
@@ -61,12 +77,16 @@ export default function Home() {
                 </label>
               </div>
               <div className="form-control mt-6">
-                <button className="btn btn-primary">Login</button>
+                <button className="btn btn-primary" type='submit'>Login</button>
               </div>
             </form>
           </div>
         </div>
       </div>
     </main>
+    </form>
   );
-}
+
+};
+
+export default LoginPage;
