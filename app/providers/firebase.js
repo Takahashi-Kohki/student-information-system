@@ -1,8 +1,7 @@
 // Import the necessary functions from the SDKs 
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import firebase from 'firebase/app'; //GPT
-import 'firebase/auth'; //GPT
+
 
 // Web app's Firebase configuration
 const firebaseConfig = {
@@ -21,16 +20,6 @@ firebase.initializeApp(firebaseConfig);
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// Set persistence (usually at initialization) //GPT
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .then(() => {
-    // Persistence enabled
-    console.log("Firebase initialized with persistence.");
-  })
-  .catch((error) => {
-    console.error("Error setting persistence:", error);
-  });
 
 export { auth };
 
-export default firebase;//GPT
