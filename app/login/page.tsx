@@ -1,32 +1,35 @@
-"use client";
+'use client'
 
-import React, { useState } from 'react';
+import signIn from "@/lib/signIn";
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase'; // Adjust the path according to your file structure
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useState } from "react";
 
-export default function Home() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
+function Login(): JSX.Element {
+  const [ email, setEmail ] = useState( '' );
+  const [ password, setPassword ] = useState( '' );
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/'); 
+  // Handle form submission
+  const handleLogin = async ( event: { preventDefault: () => void } ) => {
+    event.preventDefault();
 
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message);
+    // Attempt to sign in with provided email and password
+    const { result, error } = await signIn( email, password );
 
-      } else {
-        setError('An unexpected error occurred');
-      }
+    if ( error ) {
+      // Display and log any sign-in errors
+      console.log( error );
+      return;
     }
-  };
+
+    // Sign in successful
+    console.log( result );
+
+    // Redirect to the admin page
+    // Typically you would want to redirect them to a protected page an add a check to see if they are admin or 
+    // create a new page for admin
+    router.push( "/" );
+  }
 
 
   return (
@@ -87,7 +90,7 @@ export default function Home() {
               <div className="form-control mt-6">
                 <button className="btn btn-primary">Login</button>
               </div>
-              {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+              
             </form>
           </div>
         </div>
@@ -95,3 +98,5 @@ export default function Home() {
     </main>
   );
 }
+
+export default Login;

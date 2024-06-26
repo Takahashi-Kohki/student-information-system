@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Header from "@/app/components/Header";
-import { db, auth } from "@/lib/firebase"; // Assuming you have auth imported from firebase
-import { doc, getDoc } from "firebase/firestore";
+import { useAuthContext } from "@/context/AuthContext";
+import  getDocument from "@/lib/getData";
 import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
 
 interface StudentData {
@@ -24,7 +24,8 @@ interface Lecture {
   date: string;
 }
 
-const Main: React.FC = () => {
+function Main(): JSX.Element {
+
   const [studentData, setStudentData] = useState<StudentData>({
     name: "",
     studentId: "",
@@ -32,49 +33,45 @@ const Main: React.FC = () => {
     lectures: [],
     completedSemesters: 0
   });
+  
+  // Access the user object from the authentication context
+  // const { user } = useAuthContext();
+  const { user } = useAuthContext() as { user: any }; // Use 'as' to assert the type as { user: any }
+  const router = useRouter();
 
-  const [lectures, setLectures] = useState<Lecture[]>([]);
-  const router = useRouter(); // Initialize useRouter
+  useEffect( () => {
+    // Redirect to the home page if the user is not logged in
+    if ( user == null ) {
+      router.push( "/login" );
+    } else {
+      // Fetch student data
+      const docRef = doc(db, "students", user.uid);
+      const docSnap = await getDoc(docRef);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          router.push('/'); // Redirect to '/' if user is not authenticated
-        } else {
-          // Fetch student data
-          const docRef = doc(db, "students", user.uid);
-          const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data() as StudentData;
+        setStudentData(data);
 
-          if (docSnap.exists()) {
-            const data = docSnap.data() as StudentData;
-            setStudentData(data);
-
-            // Fetch lectures data using the lectures array in studentData
-            const lecturesData: Lecture[] = [];
-            for (const lectureId of data.lectures) {
-              const lectureDocRef = doc(db, "lectures", lectureId);
-              const lectureDocSnap = await getDoc(lectureDocRef);
-              if (lectureDocSnap.exists()) {
-                const lecture = { id: lectureDocSnap.id, ...lectureDocSnap.data() } as Lecture;
-                lecturesData.push(lecture);
-              } else {
-                console.log(`Lecture document with ID ${lectureId} does not exist`);
-              }
-            }
-            setLectures(lecturesData);
+        // Fetch lectures data using the lectures array in studentData
+        const lecturesData: Lecture[] = [];
+        for (const lectureId of data.lectures) {
+          const lectureDocRef = doc(db, "lectures", lectureId);
+          const lectureDocSnap = await getDoc(lectureDocRef);
+          if (lectureDocSnap.exists()) {
+            const lecture = { id: lectureDocSnap.id, ...lectureDocSnap.data() } as Lecture;
+            lecturesData.push(lecture);
           } else {
-            console.log("No such document!");
+            console.log(`Lecture document with ID ${lectureId} does not exist`);
           }
         }
-      } catch (error) {
-        console.error("Error fetching document: ", error);
+        setLectures(lecturesData);
+      } else {
+        console.log("No such document!");
       }
-    };
+    }
+    // }, [ user ] );
+  }, [ user, router ] ); // Include 'router' in the dependency array to resolve eslint warning
 
-    checkAuth();
-  }, []); // Empty dependency array ensures useEffect runs only once
 
  const renderSemester = (semesterNumber: number) => {
   const isCompleted = semesterNumber <= studentData.completedSemesters;
