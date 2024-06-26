@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '../providers/firebase';
+import { auth } from '@/lib/firebase'; // Adjust the path according to your file structure
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
-
-export default function Login() {
+export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,14 +17,17 @@ export default function Login() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/'); 
+
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
+
       } else {
         setError('An unexpected error occurred');
       }
     }
   };
+
 
   return (
     <main>

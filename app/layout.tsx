@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -16,9 +17,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        {/* Add metadata and other head elements here if needed */}
-      </head>
       <body className={`${inter.className} grid grid-rows-[auto_1fr_auto] h-screen`}>
         {children}
         <footer className="footer p-10 bg-base-200 text-base-content">

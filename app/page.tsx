@@ -1,9 +1,118 @@
 "use client";
 
-import Header from "./components/Header";
+import React, { useEffect, useState } from "react";
+import Header from "@/app/components/Header";
+import { db, auth } from "@/lib/firebase"; // Assuming you have auth imported from firebase
+import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
 
+interface StudentData {
+  name: string;
+  studentId: string;
+  cgpa: string;
+  lectures: string[]; // Assuming lectures is an array of lecture IDs or references
+  completedSemesters: number; // Added completedSemesters field
+}
 
-export default function Main() {
+interface Lecture {
+  day: string;
+  id: string;
+  programmeCode: string;
+  name: string;
+  time: string;
+  location: string;
+  date: string;
+}
+
+const Main: React.FC = () => {
+  const [studentData, setStudentData] = useState<StudentData>({
+    name: "",
+    studentId: "",
+    cgpa: "",
+    lectures: [],
+    completedSemesters: 0
+  });
+
+  const [lectures, setLectures] = useState<Lecture[]>([]);
+  const router = useRouter(); // Initialize useRouter
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          router.push('/'); // Redirect to '/' if user is not authenticated
+        } else {
+          // Fetch student data
+          const docRef = doc(db, "students", user.uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data() as StudentData;
+            setStudentData(data);
+
+            // Fetch lectures data using the lectures array in studentData
+            const lecturesData: Lecture[] = [];
+            for (const lectureId of data.lectures) {
+              const lectureDocRef = doc(db, "lectures", lectureId);
+              const lectureDocSnap = await getDoc(lectureDocRef);
+              if (lectureDocSnap.exists()) {
+                const lecture = { id: lectureDocSnap.id, ...lectureDocSnap.data() } as Lecture;
+                lecturesData.push(lecture);
+              } else {
+                console.log(`Lecture document with ID ${lectureId} does not exist`);
+              }
+            }
+            setLectures(lecturesData);
+          } else {
+            console.log("No such document!");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching document: ", error);
+      }
+    };
+
+    checkAuth();
+  }, []); // Empty dependency array ensures useEffect runs only once
+
+ const renderSemester = (semesterNumber: number) => {
+  const isCompleted = semesterNumber <= studentData.completedSemesters;
+  return (
+    <li key={semesterNumber}>
+      {semesterNumber !== 1 && (
+        <hr
+          className={isCompleted ? "bg-primary progress-bar-completed" : "bg-gray progress-bar"}
+          style={{ margin: "0 auto", width: "200%", marginLeft: "-100%" }}
+        />
+      )}
+      <div className={`timeline-box ${semesterNumber % 2 === 0 ? 'timeline-end' : 'timeline-start'}`}>
+        Semester {semesterNumber}
+      </div>
+      <div className="timeline-middle">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className={`w-5 h-5 ${isCompleted ? 'text-primary' : 'text-gray'}`}
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </div>
+      {semesterNumber === studentData.completedSemesters && (
+        <hr
+          className="bg-primary progress-bar-completed"
+          style={{ margin: "0 auto", width: "0%", marginLeft: "-110%" }}
+        />
+      )}
+    </li>
+  );
+};
+
 
   return (
     <main>
@@ -27,7 +136,7 @@ export default function Main() {
               </svg>
             </div>
             <div className="stat-title">Name</div>
-            <div className="stat-value text-primary"> </div>
+            <div className="stat-value text-primary">{studentData.name}</div>
           </div>
 
           <div className="stat">
@@ -46,92 +155,57 @@ export default function Main() {
               </svg>
             </div>
             <div className="stat-title">Student ID</div>
-            <div className="stat-value text-secondary"></div>
+            <div className="stat-value text-secondary">{studentData.studentId}</div>
           </div>
 
           <div className="stat">
             <div className="stat-figure text-secondary static">
             </div>
             <div className="stat-title">CGPA</div>
-            <div className="stat-value"></div>
+            <div className="stat-value">{studentData.cgpa}</div>
           </div>
         </div>
 
-        <div className="divider"> Upcoming Lectures</div> 
+        <div className="divider"> Upcoming Lectures</div>
 
         <div className="grid h-95 card bg-base-300 p-4 ml-1 mr-1 mb-4 mt-4 rounded-box">
           <div className="overflow-x-auto">
             <table className="table table-xs">
               <thead>
                 <tr>
-                  <th>No.</th>
-                  <th>Course Code</th>
-                  <th>Starting Time</th>
-                  <th>Ending Time</th>
+                  <th></th>
+                  <th>Name</th>
+                  <th>Programme Code</th>
+                  <th>Time</th>
                   <th>Location</th>
-                  <th>Date</th>
+                  <th>Day</th>
                 </tr>
               </thead>
               <tbody>
-
-                      <tr>
-                        <th></th>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                      </tr>
-
+                {lectures.map((lecture, index) => (
+                  <tr key={lecture.id}>
+                    <th>{index + 1}</th>
+                    <td>{lecture.name}</td>
+                    <td>{lecture.programmeCode}</td>
+                    <td>{lecture.time}</td>
+                    <td>{lecture.location}</td>
+                    <td>{lecture.day}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
+    
 
         <div className="divider"> Current Semester Progress</div> 
 
-        <ul className="timeline justify-center ">
-          <li>
-            <div className="timeline-start timeline-box">Semester 1</div>
-            <div className="timeline-middle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-primary"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
-            </div>
-            <hr className="bg-primary"/>
-          </li>
-          <li>
-            <hr className="bg-primary"/>
-            <div className="timeline-middle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-primary"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
-            </div>
-            <div className="timeline-end timeline-box">Semester 2</div>
-            <hr className="bg-primary"/>
-          </li>
-          <li>
-            <hr className="bg-primary"/>
-            <div className="timeline-start timeline-box">Semester 3</div>
-            <div className="timeline-middle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-primary"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
-            </div>
-            <hr/>
-          </li> 
-          <li>
-            <hr/>
-            <div className="timeline-middle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
-            </div>
-            <div className="timeline-end timeline-box">Semester 4</div>
-            <hr/>
-          </li>
-          <li>
-            <hr/>
-            <div className="timeline-start timeline-box">Semester 5</div>
-            <div className="timeline-middle">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
-            </div>
-          </li>
+        <ul className="timeline justify-center">
+          {[1, 2, 3, 4, 5].map(semester => renderSemester(semester))}
         </ul>
       </div>
     </main>
   );
 };
 
+export default Main;
