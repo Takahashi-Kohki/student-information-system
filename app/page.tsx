@@ -44,32 +44,15 @@ function Main(): JSX.Element {
     if ( user == null ) {
       router.push( "/login" );
     } else {
+      if (user) {
+        const uid = user.uid;
+        // Now you have the UID of the signed-in user
+        // Proceed to fetch data from Firestore based on this UID
+        const { result, error } = await getDocument('students', uid);
       // Fetch student data
-      const docRef = doc(db, "students", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data() as StudentData;
-        setStudentData(data);
-
-        // Fetch lectures data using the lectures array in studentData
-        const lecturesData: Lecture[] = [];
-        for (const lectureId of data.lectures) {
-          const lectureDocRef = doc(db, "lectures", lectureId);
-          const lectureDocSnap = await getDoc(lectureDocRef);
-          if (lectureDocSnap.exists()) {
-            const lecture = { id: lectureDocSnap.id, ...lectureDocSnap.data() } as Lecture;
-            lecturesData.push(lecture);
-          } else {
-            console.log(`Lecture document with ID ${lectureId} does not exist`);
-          }
-        }
-        setLectures(lecturesData);
-      } else {
-        console.log("No such document!");
-      }
+      
     }
-    // }, [ user ] );
+    
   }, [ user, router ] ); // Include 'router' in the dependency array to resolve eslint warning
 
 
