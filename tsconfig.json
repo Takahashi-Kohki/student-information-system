@@ -21,6 +21,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "lib/FirebaseProvider.jsx", "lib/AuthProvider.jsx", "app/providers/AuthProvider.jsx", "app/page.jsx", "app/components/RestOfTheApp.jsx", "app/providers/AuthProvider.jsx", "lib/getData.js"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "lib/FirebaseProvider.jsx", "lib/AuthProvider.jsx", "app/providers/AuthProvider.jsx", "app/page.jsx", "app/components/RestOfTheApp.jsx", "app/providers/AuthProvider.jsx", "lib/getData.ts"],
   "exclude": ["node_modules"]
 }

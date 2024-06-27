@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Header from "@/app/components/Header";
 import { useAuthContext } from "@/context/AuthContext";
-import  getDocument from "@/lib/getData";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "./firebase/config";
 import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
 
 interface StudentData {
@@ -33,65 +34,89 @@ function Main(): JSX.Element {
     lectures: [],
     completedSemesters: 0
   });
-  
+
+  const [lectures, setLectures] = useState<Lecture[]>([]);
   // Access the user object from the authentication context
   // const { user } = useAuthContext();
   const { user } = useAuthContext() as { user: any }; // Use 'as' to assert the type as { user: any }
   const router = useRouter();
 
-  useEffect( () => {
-    // Redirect to the home page if the user is not logged in
-    if ( user == null ) {
-      router.push( "/login" );
-    } else {
-      if (user) {
-        const uid = user.uid;
-        // Now you have the UID of the signed-in user
-        // Proceed to fetch data from Firestore based on this UID
-        const { result, error } = await getDocument('students', uid);
-      // Fetch student data
-      
-    }
-    
-  }, [ user, router ] ); // Include 'router' in the dependency array to resolve eslint warning
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) {
+        router.push('/');
+        return;
+      }
 
+      try {
+        // Fetch student data
+        const docRef = doc(db, 'students', user.uid);
+        const docSnap = await getDoc(docRef);
 
- const renderSemester = (semesterNumber: number) => {
-  const isCompleted = semesterNumber <= studentData.completedSemesters;
-  return (
-    <li key={semesterNumber}>
-      {semesterNumber !== 1 && (
-        <hr
-          className={isCompleted ? "bg-primary progress-bar-completed" : "bg-gray progress-bar"}
-          style={{ margin: "0 auto", width: "200%", marginLeft: "-100%" }}
-        />
-      )}
-      <div className={`timeline-box ${semesterNumber % 2 === 0 ? 'timeline-end' : 'timeline-start'}`}>
-        Semester {semesterNumber}
-      </div>
-      <div className="timeline-middle">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className={`w-5 h-5 ${isCompleted ? 'text-primary' : 'text-gray'}`}
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
-            clipRule="evenodd"
+        if (docSnap.exists()) {
+          const data = docSnap.data() as StudentData;
+          setStudentData(data);
+
+          // Fetch lectures data using the lectures array in studentData
+          const lecturesData: Lecture[] = [];
+          for (const lectureId of data.lectures) {
+            const lectureDocRef = doc(db, 'lectures', lectureId);
+            const lectureDocSnap = await getDoc(lectureDocRef);
+            if (lectureDocSnap.exists()) {
+              const lecture = { id: lectureDocSnap.id, ...lectureDocSnap.data() } as Lecture;
+              lecturesData.push(lecture);
+            } else {
+              console.log(`Lecture document with ID ${lectureId} does not exist`);
+            }
+          }
+          setLectures(lecturesData);
+        } else {
+          console.log('No such document!');
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [user, router]);
+
+  const renderSemester = (semesterNumber: number) => {
+    const isCompleted = semesterNumber <= studentData.completedSemesters;
+    return (
+      <li key={semesterNumber}>
+        {semesterNumber !== 1 && (
+          <hr
+            className={isCompleted ? "bg-primary progress-bar-completed" : "bg-gray progress-bar"}
+            style={{ margin: "0 auto", width: "200%", marginLeft: "-100%" }}
           />
-        </svg>
-      </div>
-      {semesterNumber === studentData.completedSemesters && (
-        <hr
-          className="bg-primary progress-bar-completed"
-          style={{ margin: "0 auto", width: "0%", marginLeft: "-110%" }}
-        />
-      )}
-    </li>
-  );
-};
+        )}
+        <div className={`timeline-box ${semesterNumber % 2 === 0 ? 'timeline-end' : 'timeline-start'}`}>
+          Semester {semesterNumber}
+        </div>
+        <div className="timeline-middle">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className={`w-5 h-5 ${isCompleted ? 'text-primary' : 'text-gray'}`}
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
+        {semesterNumber === studentData.completedSemesters && (
+          <hr
+            className="bg-primary progress-bar-completed"
+            style={{ margin: "0 auto", width: "0%", marginLeft: "-110%" }}
+          />
+        )}
+      </li>
+    );
+  };
 
 
   return (
@@ -162,7 +187,7 @@ function Main(): JSX.Element {
                 </tr>
               </thead>
               <tbody>
-                {lectures.map((lecture, index) => (
+              {lectures.map((lecture, index) => (
                   <tr key={lecture.id}>
                     <th>{index + 1}</th>
                     <td>{lecture.name}</td>
@@ -181,7 +206,7 @@ function Main(): JSX.Element {
         <div className="divider"> Current Semester Progress</div> 
 
         <ul className="timeline justify-center">
-          {[1, 2, 3, 4, 5].map(semester => renderSemester(semester))}
+          
         </ul>
       </div>
     </main>
