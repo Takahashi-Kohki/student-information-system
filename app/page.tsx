@@ -1,18 +1,17 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from "react";
-import Header from "@/app/components/Header";
-import { useAuthContext } from "@/context/AuthContext";
+import { useRouter } from 'next/navigation';
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "./firebase/config";
-import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
+import { db, auth } from "../lib/firebase/firebaseConfig";
+import Header from "@/app/components/Header";
 
 interface StudentData {
   name: string;
   studentId: string;
   cgpa: string;
-  lectures: string[]; // Assuming lectures is an array of lecture IDs or references
-  completedSemesters: number; // Added completedSemesters field
+  lectures: string[];
+  completedSemesters: number;
 }
 
 interface Lecture {
@@ -25,8 +24,8 @@ interface Lecture {
   date: string;
 }
 
-function Main(): JSX.Element {
 
+const Main: React.FC = () => {
   const [studentData, setStudentData] = useState<StudentData>({
     name: "",
     studentId: "",
@@ -36,50 +35,48 @@ function Main(): JSX.Element {
   });
 
   const [lectures, setLectures] = useState<Lecture[]>([]);
-  // Access the user object from the authentication context
-  // const { user } = useAuthContext();
-  const { user } = useAuthContext() as { user: any }; // Use 'as' to assert the type as { user: any }
   const router = useRouter();
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!user) {
-        router.push('/');
-        return;
-      }
-
-      try {
-        // Fetch student data
-        const docRef = doc(db, 'students', user.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data() as StudentData;
-          setStudentData(data);
-
-          // Fetch lectures data using the lectures array in studentData
-          const lecturesData: Lecture[] = [];
-          for (const lectureId of data.lectures) {
-            const lectureDocRef = doc(db, 'lectures', lectureId);
-            const lectureDocSnap = await getDoc(lectureDocRef);
-            if (lectureDocSnap.exists()) {
-              const lecture = { id: lectureDocSnap.id, ...lectureDocSnap.data() } as Lecture;
-              lecturesData.push(lecture);
-            } else {
-              console.log(`Lecture document with ID ${lectureId} does not exist`);
-            }
-          }
-          setLectures(lecturesData);
+    const checkAuth = async () => {
+      auth.onAuthStateChanged(async (user) => {
+        if (!user) {
+          router.push('/login');
         } else {
-          console.log('No such document!');
+          try {
+            // Fetch student data
+            const docRef = doc(db, "students", user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+              const data = docSnap.data() as StudentData;
+              setStudentData(data);
+
+              // Fetch lectures data using the lectures array in studentData
+              const lecturesData: Lecture[] = [];
+              for (const lectureId of data.lectures) {
+                const lectureDocRef = doc(db, "lectures", lectureId);
+                const lectureDocSnap = await getDoc(lectureDocRef);
+                if (lectureDocSnap.exists()) {
+                  const lecture = { id: lectureDocSnap.id, ...lectureDocSnap.data() } as Lecture;
+                  lecturesData.push(lecture);
+                } else {
+                  console.log(`Lecture document with ID ${lectureId} does not exist`);
+                }
+              }
+              setLectures(lecturesData);
+            } else {
+              console.log("No such document!");
+            }
+          } catch (error) {
+            console.error("Error fetching user data:", error);
+          }
         }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+      });
     };
 
-    fetchData();
-  }, [user, router]);
+    checkAuth();
+  }, [router]);
 
   const renderSemester = (semesterNumber: number) => {
     const isCompleted = semesterNumber <= studentData.completedSemesters;
@@ -118,27 +115,30 @@ function Main(): JSX.Element {
     );
   };
 
-
   return (
     <main>
       <Header />
-      <div className="p-5">
+      <div className="max-h-screen min-w-screen p-5">
+      <div className="flex w-full flex-col border-opacity-50">
+        <div className="card bg-base-300 rounded-box grid">
+          <p className="h-16 pl-4 font-bold rounded-box text-3xl content-center bg-gradient-to-l from-indigo-50 to-violet-600 bg-clip-text text-transparent">
+          Welcome to CampuSphere Student Infromation System.</p>
+        </div>
+        <div className="divider"></div>
+      </div>
+
         <div className="flex justify-center items-center stats shadow">
           <div className="stat">
             <div className="stat-figure text-primary">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                className="inline-block w-8 h-8 stroke-current"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                ></path>
-              </svg>
+            <svg xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        className="inline-block h-8 w-8 stroke-current">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </svg>
             </div>
             <div className="stat-title">Name</div>
             <div className="stat-value text-primary">{studentData.name}</div>
@@ -146,25 +146,32 @@ function Main(): JSX.Element {
 
           <div className="stat">
             <div className="stat-figure text-secondary">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                className="inline-block w-8 h-8 stroke-current">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                ></path>
-              </svg>
+            <svg xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        className="inline-block h-8 w-8 stroke-current">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm1.294 6.336a6.721 6.721 0 0 1-3.17.789 6.721 6.721 0 0 1-3.168-.789 3.376 3.376 0 0 1 6.338 0Z" />
+        </svg>
+
             </div>
             <div className="stat-title">Student ID</div>
             <div className="stat-value text-secondary">{studentData.studentId}</div>
           </div>
 
           <div className="stat">
-            <div className="stat-figure text-secondary static">
+            <div className="stat-figure static">
+            <svg xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            className="inline-block h-8 w-8 stroke-current">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0 1 16.5 7.605" />
+          </svg>
             </div>
             <div className="stat-title">CGPA</div>
             <div className="stat-value">{studentData.cgpa}</div>
@@ -187,7 +194,7 @@ function Main(): JSX.Element {
                 </tr>
               </thead>
               <tbody>
-              {lectures.map((lecture, index) => (
+                {lectures.map((lecture, index) => (
                   <tr key={lecture.id}>
                     <th>{index + 1}</th>
                     <td>{lecture.name}</td>
@@ -201,12 +208,11 @@ function Main(): JSX.Element {
             </table>
           </div>
         </div>
-    
 
-        <div className="divider"> Current Semester Progress</div> 
+        <div className="divider"> Current Semester Progress</div>
 
         <ul className="timeline justify-center">
-          
+          {[1, 2, 3, 4, 5, 6].map(semester => renderSemester(semester))}
         </ul>
       </div>
     </main>

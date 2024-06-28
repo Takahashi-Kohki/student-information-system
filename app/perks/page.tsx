@@ -8,7 +8,7 @@ export default function Perks() {
       <main>
         <Header />
 
-<div className="flex flex-col w-full">
+<div className="flex flex-col min-h-screen min-w-screen">
 <div className="grid h-20 card bg-base-300 p-4 ml-4 mr-4 mb-4 mt-4 rounded-box font-bold text-2xl place-content-evenly">CampuSphere Perks</div> 
 <div className="divider"></div> 
 

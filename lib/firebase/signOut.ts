@@ -1,7 +1,6 @@
-import firebase_app from "./firebase";
-import { signOut, getAuth } from "firebase/auth";
+import { auth } from './firebaseConfig'; // Adjust the path according to your file structure
+import { signOut } from "firebase/auth";
 
-const auth = getAuth(firebase_app);
 
 export default async function signOutUser() {
     let result = null; // Variable to store the sign-out result

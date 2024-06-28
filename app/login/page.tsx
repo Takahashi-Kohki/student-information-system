@@ -1,6 +1,7 @@
 'use client'
 
-import signIn from "@/lib/signIn";
+import Particles from "../components/Particles";
+import signIn from "@/lib/firebase/signIn";
 import { useRouter } from 'next/navigation';
 import { useState } from "react";
 
@@ -25,8 +26,6 @@ function Login(): JSX.Element {
     // Sign in successful
     console.log( result );
 
-    // Redirect to the admin page
-    // Typically you would want to redirect them to a protected page an add a check to see if they are admin or 
     // create a new page for admin
     router.push( "/" );
   }
@@ -34,15 +33,20 @@ function Login(): JSX.Element {
 
   return (
     <main>
-      <div className="hero min-h-screen bg-base-200">
-        <div className="hero-content flex-col lg:flex-row-reverse">
+      <div className="flex flex-col items-center justify-center w-screen h-screen overflow-hidden bg-gradient-to-tl from-black via-zinc-600/20 to-black">
+            <div className="hero-content flex-col lg:flex-row-reverse">
+            <Particles
+            className="absolute inset-0 -z-10 animate-fade-in"
+            quantity={100}
+          />
           <div className="text-center lg:text-left">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-danger bg-clip-text text-transparent">CampuSphere.</h1>
             <h1 className="text-5xl font-bold">Student Information System</h1>
             <p className="py-6 text-justify">
               Welcome to CampuSphere. This secure portal is your gateway to a wide array of academic and administrative services, designed to help you manage your educational journey efficiently.
             </p>
           </div>
-          <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+          <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-300">
             <form className="card-body" onSubmit={handleLogin}>
               <div className="form-control">
                 <label className="label">
@@ -81,11 +85,13 @@ function Login(): JSX.Element {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                 </label>
+
                 <label className="label">
-                  <a href="#" className="label-text-alt link link-hover">
+                  <a href="/forgotpassword" className="label-text-alt link link-hover" >
                     Forgot password?
                   </a>
                 </label>
+
               </div>
               <div className="form-control mt-6">
                 <button className="btn btn-primary">Login</button>

@@ -8,7 +8,7 @@ function Attendance() {
   return (
     <>
       <Header />
-      <div className="flex flex-col w-full">
+      <div className="flex flex-col min-h-screen min-w-screen">
         <div className="stats stats-vertical lg:stats-horizontal p-4 ml-4 mr-4 mb-4 mt-4 shadow">
           <div className="stat">
             <div className="stat-title">Semester</div>
