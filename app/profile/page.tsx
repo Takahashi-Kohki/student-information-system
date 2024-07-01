@@ -210,6 +210,7 @@ const Profile: React.FC = () => {
       <div className="min-h-screen min-w-screen">
       <div className="grid h-20 card bg-base-300 p-4 ml-4 mr-4 mt-4 rounded-box font-bold text-2xl place-content-evenly">Profile Information</div> 
       <div className="divider"></div> 
+      
         <div className="flex flex-col p-4 lg:flex-row">
         <div className="card h-fit w-auto bg-base-300 shadow-xl">
           <figure>
@@ -263,15 +264,9 @@ const Profile: React.FC = () => {
 
           <label className="input input-bordered flex items-center gap-2 mb-6">
             <div className="label">
-              <span className="label-text-alt text-sm">Permanent Address</span>
+            <span className="label-text-alt text-sm">Permenant Address</span>
             </div>
-            <input
-              type="text"
-              placeholder="Permanent Address"
-              className="input"
-              value={editableData.permanentAddress}
-              onChange={handleInputChange}
-            />  
+            <input type="text" placeholder="Permenant Address" value={editableData.permanentAddress} onChange={handleInputChange} />  
           </label>
 
           <label className="input input-bordered flex items-center gap-2 mb-6">

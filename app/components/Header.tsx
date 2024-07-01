@@ -31,7 +31,7 @@ export default function Header() {
             <ul className="menu w-80 min-h-full bg-base-200 text-base-content">
               
             <li className="p-4">
-                <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay btn no-animation text-xl">
+                <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay btn no-animation text-2xl">
                   CampuSphere</label></li>
 
               <li className="my-2">
@@ -111,8 +111,8 @@ export default function Header() {
 
               
               <div className="mt-auto">
-                <div className="mockup-code">
-                  <pre data-prefix=">"><code>This is a final year project</code></pre>
+                <div className="card text-xs">
+                  <pre data-prefix=">"><code>This is a final year project.</code></pre>
                   <pre data-prefix=""><code>By Kenzo, Sam & Koh</code></pre>
                 </div>
               </div>

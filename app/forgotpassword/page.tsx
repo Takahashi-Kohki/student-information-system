@@ -44,6 +44,7 @@ const ForgotPassword = (props: Props) => {
     <>
 <div className="hero bg-base-200 min-h-screen">
   <div className="hero-content flex-col lg:flex-row-reverse">
+
     <div className="text-center lg:text-left">
       <h1 className="text-5xl font-bold">Forgotten your password?</h1>
         <p className="py-6">
@@ -62,6 +63,7 @@ const ForgotPassword = (props: Props) => {
           <input 
           onChange={(e) => handleEmailChange(e.target.value)}
           type="email" placeholder="xxx@campusphere.com" className="input input-bordered" required />
+          
            {!isValidEmail && email.length > 0 ? (
             <p className="mt-1 text-error text-xs italic text-red-500">
               Enter Valid Email
@@ -70,6 +72,9 @@ const ForgotPassword = (props: Props) => {
             ""
           )}
         </div>
+        <label>
+        <a href="/login" className="label-text-alt link link-hover">Go back to login</a>
+        </label>
         <div className="form-control mt-6">
           <button className="btn btn-primary">Reset</button>
         </div>

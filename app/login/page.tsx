@@ -50,7 +50,7 @@ function Login(): JSX.Element {
             <form className="card-body" onSubmit={handleLogin}>
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text">Student ID</span>
+                  <span className="label-text">Student Email</span>
                 </label>
                 <label className="input input-bordered flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70">
@@ -59,7 +59,7 @@ function Login(): JSX.Element {
                   <input
                     type="email"
                     className="grow"
-                    placeholder="Username"
+                    placeholder="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
